@@ -6,7 +6,7 @@
  * @apiDescription Lists all users
  */
 exports.users_get = (req, res, next) => {
-    if (req.query.length == 0) {
+    if (req.query.name == undefined) {
         res.send("get users list");
     } else {
       if (req.query.name) {
