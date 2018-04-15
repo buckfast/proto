@@ -1,11 +1,65 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <title>soket</title>
+    <link href="/stylesheets/style.css" rel="stylesheet" type="text/css">
   </head>
   <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
+    <h1 id="t">current room: none</h1>
+    <div id="roomlist">
+      <h1>room list</h1>
+      <ul>
+      </ul>
+    </div>
+    <ul id="messages"></ul>
+    <form id="form" action="">
+      <input id="name" value="anon"/>
+      <input id="input"/>
+      <button>Send</button>
+    </form>
+    <button id="createroom">create room</button>
+    <script
+			  src="https://code.jquery.com/jquery-3.3.1.min.js"
+			  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+			  crossorigin="anonymous"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      $(() => {
+        let socket = io();
+        $('#form').submit(() => {
+          socket.emit('message', $('#name').val()+": "+$('#input').val());
+
+          $('#messages').append($('<li>').text($('#name').val()+": "+$('#input').val()));
+          $('#input').val('');
+          return false;
+        });
+
+        socket.on('message', (msg) => {
+          $('#messages').append($('<li>').text(msg));
+        });
+
+        $("#createroom").click(() => {
+          socket.emit("room_create", $('#name').val());
+        });
+
+        socket.on("room_created", (msg) => {
+
+          let li = $('<li>').text("join "+msg.name+"'s room ("+msg.roomNumber+")");
+          li.attr("id", msg.roomNumber);
+          li.css('cursor','pointer');
+          li.on("click", () => {
+            socket.emit("room_join", msg);
+          });
+          $('#roomlist').find("ul").append(li);
+        });
+
+
+
+        socket.on("room_joined", (msg) => {
+          $('#messages').find("li").remove();
+          $("#t").text("current room: "+msg.name+"'s room ("+msg.roomNumber+")");
+        })
+      });
+    </script>
   </body>
 </html>
